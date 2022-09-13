@@ -6,6 +6,6 @@ Arduino IDE?
 
 
 # HW
-Programovací deska - shorturl.at/acpty  
-ESP32 a kamera - shorturl.at/cGHPY  
-Můstek na motory - shorturl.at/deiZ2  
+Programovací deska - https://shorturl.at/acpty  
+ESP32 a kamera - https://shorturl.at/cGHPY  
+Můstek na motory - https://shorturl.at/deiZ2  
