@@ -36,3 +36,7 @@
 # Zdroje informací
 - https://randomnerdtutorials.com/program-upload-code-esp32-cam/
 - https://www.youtube.com/watch?v=-GDlk6qgQ_E
+
+
+
+![maxresdefault](https://user-images.githubusercontent.com/66717846/195072284-42560d5e-8189-4bd0-be5f-18f21b6e6835.jpg)
