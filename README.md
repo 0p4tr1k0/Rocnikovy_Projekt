@@ -10,6 +10,7 @@
 - Martin Čech
 - Jakub Heisig
 - Viktor Chudoba
+- Pavel Sixta
 
 # SW
 - Arduino IDE?  
