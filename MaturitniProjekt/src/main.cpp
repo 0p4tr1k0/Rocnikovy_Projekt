@@ -23,6 +23,13 @@ static const char PROGMEM INDEX_HTML[] = R"rawliteral(
     <title>ESP32-CAM Robot</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
+    body{
+      background-color: #000000;
+    }
+    h1{
+      text-align: center;
+      color: #00FF00;
+    }
       img {
         width: auto;
         max-width: 100%;
