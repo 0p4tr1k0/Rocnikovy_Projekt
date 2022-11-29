@@ -1,5 +1,6 @@
 #include "esp_camera.h"
 #include <WiFi.h>
+#include "SPIFFS.h"
 #include "esp_timer.h"
 #include "img_converters.h"
 #include "Arduino.h"
@@ -17,40 +18,12 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 httpd_handle_t camera_httpd = NULL;
 httpd_handle_t stream_httpd = NULL;
 
-static const char PROGMEM INDEX_HTML[] = R"rawliteral(
-<html>
-  <head>
-    <title>ESP32-CAM Robot</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-    body{
-      background-color: #000000;
-    }
-    h1{
-      text-align: center;
-      color: #00FF00;
-    }
-      img {
-        width: auto;
-        max-width: 100%;
-        height: auto; 
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Robot</h1>
-    <img src="" id="stream">
-   <script>
-   window.onload = document.getElementById("stream").src = window.location.href.slice(0, -1) + ":81/stream";
-  </script>
-  </body>
-</html>
-)rawliteral";
+String indexString;
 
 //ovladač pro poslání indexu
 static esp_err_t index_handler(httpd_req_t *req){
   httpd_resp_set_type(req, "text/html");
-  return httpd_resp_send(req, (const char *)INDEX_HTML, strlen(INDEX_HTML)); //pošle index z PROGMEM
+  return httpd_resp_send(req, indexString.c_str(), indexString.length()); //pošle index z PROGMEM
 }
 
 //ovladač pro poslání obrázku z kamery
@@ -112,6 +85,49 @@ static esp_err_t stream_handler(httpd_req_t *req){
   return res;
 }
 
+//ovladač pro pohyb
+static esp_err_t go_handler(httpd_req_t *req){
+  char*  buf;
+  size_t buf_len = httpd_req_get_url_query_len(req) + 1;
+  char variable[32] = {0,};
+  
+  if (buf_len > 1) {
+    //vytvoření bufferu pro url
+    buf = (char*)malloc(buf_len);
+    if(!buf){
+      httpd_resp_send_500(req);
+      return ESP_FAIL;
+    }
+    if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) { //ziskani cele url
+      if (httpd_query_key_value(buf, "direction", variable, sizeof(variable)) == ESP_OK) { //ziskani parametru
+      } else {
+        free(buf);
+        httpd_resp_send_404(req);
+        return ESP_FAIL;
+      }
+    } else {
+      free(buf);
+      httpd_resp_send_404(req);
+      return ESP_FAIL;
+    }
+    free(buf);
+  } else {
+    httpd_resp_send_404(req);
+    return ESP_FAIL;
+  }
+  
+  if(!strcmp(variable, "rovne")) {
+    digitalWrite(4, HIGH);
+    delay(50);
+    digitalWrite(4, LOW);
+  } else {
+    return httpd_resp_send_500(req);
+  }
+
+  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
+  return httpd_resp_send(req, NULL, 0);
+}
+
 //nastartování serveru
 void startServer(){
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -124,9 +140,17 @@ void startServer(){
     .handler   = index_handler,
     .user_ctx  = NULL
   };
+  //odkaz pro index
+  httpd_uri_t go_uri = {
+    .uri       = "/go",
+    .method    = HTTP_GET,
+    .handler   = go_handler,
+    .user_ctx  = NULL
+  };
   //nastartování stránky index
   if (httpd_start(&camera_httpd, &config) == ESP_OK) {
     httpd_register_uri_handler(camera_httpd, &index_uri);
+    httpd_register_uri_handler(camera_httpd, &go_uri);
   }
 
   //odkaz pro stream
@@ -148,6 +172,13 @@ void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
   
   Serial.begin(115200);
+  pinMode(4, OUTPUT);
+
+  SPIFFS.begin();
+  File file = SPIFFS.open("/index.html", "r");
+  while(file.available()){
+    indexString = file.readString();
+  }
   
   //nastavení pinů
   camera_config_t config;
