@@ -19,6 +19,10 @@ httpd_handle_t camera_httpd = NULL;
 httpd_handle_t stream_httpd = NULL;
 
 String indexString;
+#define motor1 16
+#define motor2 13
+#define motor3 14
+#define motor4 15
 
 //ovladač pro poslání indexu
 static esp_err_t index_handler(httpd_req_t *req){
@@ -117,8 +121,33 @@ static esp_err_t go_handler(httpd_req_t *req){
   }
   
   if(!strcmp(variable, "rovne")) {
+    digitalWrite(motor3, HIGH);
+    digitalWrite(motor4, LOW);
+    digitalWrite(motor2, HIGH);
+    digitalWrite(motor1, LOW);
+  }else if(!strcmp(variable, "dozadu")) {
+    digitalWrite(motor3, LOW);
+    digitalWrite(motor4, HIGH);
+    digitalWrite(motor2, LOW);
+    digitalWrite(motor1, HIGH);
+  } else if(!strcmp(variable, "vlevo")) {
+    digitalWrite(motor3, LOW);
+    digitalWrite(motor4, HIGH);
+    digitalWrite(motor2, HIGH);
+    digitalWrite(motor1, LOW);
+  } else if(!strcmp(variable, "vpravo")) {
+    digitalWrite(motor3, HIGH);
+    digitalWrite(motor4, LOW);
+    digitalWrite(motor2, LOW);
+    digitalWrite(motor1, HIGH);
+  } else if(!strcmp(variable, "stop")) {
+    digitalWrite(motor3, LOW);
+    digitalWrite(motor4, LOW);
+    digitalWrite(motor2, LOW);
+    digitalWrite(motor1, LOW);
+  } else if(!strcmp(variable, "ledOn")) {
     digitalWrite(4, HIGH);
-    delay(50);
+  } else if(!strcmp(variable, "ledOff")) {
     digitalWrite(4, LOW);
   } else {
     return httpd_resp_send_500(req);
@@ -172,6 +201,10 @@ void setup() {
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); //disable brownout detector
   
   Serial.begin(115200);
+  pinMode(motor1, OUTPUT);
+  pinMode(motor2, OUTPUT);
+  pinMode(motor3, OUTPUT);
+  pinMode(motor4, OUTPUT);
   pinMode(4, OUTPUT);
 
   SPIFFS.begin();
