@@ -34,17 +34,30 @@ height: 40px;
   <body>
     <h1>Robot</h1>
     <img src="" id="stream" class="center">
-    <div class="divCenter"><button type="button" class="tlacitko w" onmousedown="goFnc('rovne');" ontouchstart="goFnc('rovne');">W</button>
+    <div class="divCenter"><button type="button" class="tlacitko w" onmousedown="goFnc('rovne');" ontouchstart="goFnc('rovne');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">W</button>
     <br>
-    <button type="button" class="tlacitko">A</button>
-    <button type="button" class="tlacitko">S</button>
-    <button type="button" class="tlacitko">D</button>
-</div>
+    <button type="button" class="tlacitko" onmousedown="goFnc('vlevo');" ontouchstart="goFnc('vlevo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">A</button>
+    <button type="button" class="tlacitko" onmousedown="goFnc('dozadu');" ontouchstart="goFnc('dozadu');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">S</button>
+    <button type="button" class="tlacitko" onmousedown="goFnc('vpravo');" ontouchstart="goFnc('vpravo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">D</button>
+    <button type="button" onclick="svetlo()">Světlo</button>
+  </div>
    <script>
+    let led = false;
    window.onload = document.getElementById("stream").src = window.location.href.slice(0, -1) + ":81/stream";
    function goFnc(x){
     let xhr = new XMLHttpRequest();
     xhr.open ("GET", "/go?direction=" + x, true);
+    xhr.send();
+   }
+   function svetlo(){
+    let xhr = new XMLHttpRequest();
+    if(led){
+    xhr.open ("GET", "/go?direction=ledOff", true);
+    led = false;
+    } else{
+      xhr.open ("GET", "/go?direction=ledOn", true);
+      led = true;
+    }
     xhr.send();
    }
   </script>
