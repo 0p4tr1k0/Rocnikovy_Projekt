@@ -4,6 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
     body{
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
       background-color: #000000;
     }
     h1{
@@ -34,12 +35,14 @@ height: 40px;
   <body>
     <h1>Robot</h1>
     <img src="" id="stream" class="center">
-    <div class="divCenter"><button type="button" class="tlacitko w" onmousedown="goFnc('rovne');" ontouchstart="goFnc('rovne');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">W</button>
-    <br>
-    <button type="button" class="tlacitko" onmousedown="goFnc('vlevo');" ontouchstart="goFnc('vlevo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">A</button>
-    <button type="button" class="tlacitko" onmousedown="goFnc('dozadu');" ontouchstart="goFnc('dozadu');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">S</button>
-    <button type="button" class="tlacitko" onmousedown="goFnc('vpravo');" ontouchstart="goFnc('vpravo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">D</button>
-    <button type="button" onclick="svetlo()">Světlo</button>
+    <div class="divCenter">
+      <button type="button" class="tlacitko w" onmousedown="goFnc('rovne');" ontouchstart="goFnc('rovne');" onclick="goFnc('rovne');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">W</button>
+      <br>
+      <button type="button" class="tlacitko" onmousedown="goFnc('vlevo');" ontouchstart="goFnc('vlevo');" onclick="goFnc('vlevo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">A</button>
+      <button type="button" class="tlacitko" onmousedown="goFnc('dozadu');" ontouchstart="goFnc('dozadu');" onclick="goFnc('dozadu');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">S</button>
+      <button type="button" class="tlacitko" onmousedown="goFnc('vpravo');" ontouchstart="goFnc('vpravo');" onclick="goFnc('vpravo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">D</button>
+      <br>
+      <button type="button" onclick="svetlo()">Světlo</button>
   </div>
    <script>
     let led = false;
@@ -60,6 +63,31 @@ height: 40px;
     }
     xhr.send();
    }
+
+    let lastKey;
+    window.addEventListener('keydown', function (e) {
+	    if(lastKey != e.key) {
+        if(e.key == "w") {
+          goFnc('rovne');
+        }else if (e.key == "d") {
+    	    goFnc('vlevo');
+        }else if (e.key == "s") {
+    	    goFnc('dozadu');
+        }else if (e.key == "a") {
+    	    goFnc('vpravo');
+        }else if (e.key == "f") {
+    	    svetlo();
+        }
+  	    lastKey = e.key;
+      } 
+    });
+
+window.addEventListener("keyup", function(e) {
+  if(e.key != "f"){
+    goFnc('stop');
+  }
+    lastKey = "";
+  });
   </script>
   </body>
 </html>
