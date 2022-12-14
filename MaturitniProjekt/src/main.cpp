@@ -1,13 +1,18 @@
 #include "esp_camera.h"
 #include <WiFi.h>
 #include "SPIFFS.h"
+#include "Arduino.h"
 #include "esp_timer.h"
 #include "img_converters.h"
-#include "Arduino.h"
 #include "fb_gfx.h"
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 #include "esp_http_server.h"
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
 
 #define PART_BOUNDARY "123456789000000000000987654321"
 
@@ -19,16 +24,10 @@ httpd_handle_t camera_httpd = NULL;
 httpd_handle_t stream_httpd = NULL;
 
 String indexString;
-#define motor1 16
-#define motor2 13
+#define motor1 13
+#define motor2 15
 #define motor3 14
-#define motor4 15
-
-//ovladač pro poslání indexu
-static esp_err_t index_handler(httpd_req_t *req){
-  httpd_resp_set_type(req, "text/html");
-  return httpd_resp_send(req, indexString.c_str(), indexString.length()); //pošle index z PROGMEM
-}
+#define motor4 2
 
 //ovladač pro poslání obrázku z kamery
 static esp_err_t stream_handler(httpd_req_t *req){
@@ -89,111 +88,62 @@ static esp_err_t stream_handler(httpd_req_t *req){
   return res;
 }
 
-//ovladač pro pohyb
-static esp_err_t go_handler(httpd_req_t *req){
-  char*  buf;
-  size_t buf_len = httpd_req_get_url_query_len(req) + 1;
-  char variable[32] = {0,};
-  
-  if (buf_len > 1) {
-    //vytvoření bufferu pro url
-    buf = (char*)malloc(buf_len);
-    if(!buf){
-      httpd_resp_send_500(req);
-      return ESP_FAIL;
+void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
+  AwsFrameInfo *info = (AwsFrameInfo*)arg;
+  if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
+    data[len] = 0;
+    if(!strcmp((char*)data, "rovne")) {
+      digitalWrite(motor3, HIGH);
+      digitalWrite(motor4, LOW);
+      digitalWrite(motor2, HIGH);
+      digitalWrite(motor1, LOW);
+    } else if(!strcmp((char*)data, "dozadu")) {
+      digitalWrite(motor3, LOW);
+      digitalWrite(motor4, HIGH);
+      digitalWrite(motor2, LOW);
+      digitalWrite(motor1, HIGH);
+    } else if(!strcmp((char*)data, "vlevo")) {
+      digitalWrite(motor3, LOW);
+      digitalWrite(motor4, HIGH);
+      digitalWrite(motor2, HIGH);
+      digitalWrite(motor1, LOW);
+    } else if(!strcmp((char*)data, "vpravo")) {
+      digitalWrite(motor3, HIGH);
+      digitalWrite(motor4, LOW);
+      digitalWrite(motor2, LOW);
+      digitalWrite(motor1, HIGH);
+    } else if(!strcmp((char*)data, "stop")) {
+      digitalWrite(motor3, LOW);
+      digitalWrite(motor4, LOW);
+      digitalWrite(motor2, LOW);
+      digitalWrite(motor1, LOW);
+    } else if(!strcmp((char*)data, "ledOn")) {
+      digitalWrite(4, HIGH);
+    } else if (!strcmp((char*)data, "ledOff")) {
+      digitalWrite(4, LOW);
     }
-    if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK) { //ziskani cele url
-      if (httpd_query_key_value(buf, "direction", variable, sizeof(variable)) == ESP_OK) { //ziskani parametru
-      } else {
-        free(buf);
-        httpd_resp_send_404(req);
-        return ESP_FAIL;
-      }
-    } else {
-      free(buf);
-      httpd_resp_send_404(req);
-      return ESP_FAIL;
-    }
-    free(buf);
-  } else {
-    httpd_resp_send_404(req);
-    return ESP_FAIL;
   }
-  
-  if(!strcmp(variable, "rovne")) {
-    digitalWrite(motor3, HIGH);
-    digitalWrite(motor4, LOW);
-    digitalWrite(motor2, HIGH);
-    digitalWrite(motor1, LOW);
-  }else if(!strcmp(variable, "dozadu")) {
-    digitalWrite(motor3, LOW);
-    digitalWrite(motor4, HIGH);
-    digitalWrite(motor2, LOW);
-    digitalWrite(motor1, HIGH);
-  } else if(!strcmp(variable, "vlevo")) {
-    digitalWrite(motor3, LOW);
-    digitalWrite(motor4, HIGH);
-    digitalWrite(motor2, HIGH);
-    digitalWrite(motor1, LOW);
-  } else if(!strcmp(variable, "vpravo")) {
-    digitalWrite(motor3, HIGH);
-    digitalWrite(motor4, LOW);
-    digitalWrite(motor2, LOW);
-    digitalWrite(motor1, HIGH);
-  } else if(!strcmp(variable, "stop")) {
-    digitalWrite(motor3, LOW);
-    digitalWrite(motor4, LOW);
-    digitalWrite(motor2, LOW);
-    digitalWrite(motor1, LOW);
-  } else if(!strcmp(variable, "ledOn")) {
-    digitalWrite(4, HIGH);
-  } else if(!strcmp(variable, "ledOff")) {
-    digitalWrite(4, LOW);
-  } else {
-    return httpd_resp_send_500(req);
-  }
-
-  httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-  return httpd_resp_send(req, NULL, 0);
 }
 
-//nastartování serveru
-void startServer(){
-  httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-  config.server_port = 80;
-
-  //odkaz pro index
-  httpd_uri_t index_uri = {
-    .uri       = "/",
-    .method    = HTTP_GET,
-    .handler   = index_handler,
-    .user_ctx  = NULL
-  };
-  //odkaz pro index
-  httpd_uri_t go_uri = {
-    .uri       = "/go",
-    .method    = HTTP_GET,
-    .handler   = go_handler,
-    .user_ctx  = NULL
-  };
-  //nastartování stránky index
-  if (httpd_start(&camera_httpd, &config) == ESP_OK) {
-    httpd_register_uri_handler(camera_httpd, &index_uri);
-    httpd_register_uri_handler(camera_httpd, &go_uri);
-  }
-
-  //odkaz pro stream
-  httpd_uri_t stream_uri = {
-    .uri       = "/stream",
-    .method    = HTTP_GET,
-    .handler   = stream_handler,
-    .user_ctx  = NULL
-  };
-  //nastartování stránky stream
-  config.server_port = 81; //192.168.4.1:81/stream
-  config.ctrl_port = 81;
-  if (httpd_start(&stream_httpd, &config) == ESP_OK) {
-    httpd_register_uri_handler(stream_httpd, &stream_uri);
+void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+  switch (type) {
+    case WS_EVT_CONNECT:
+      Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
+      break;
+    case WS_EVT_DISCONNECT:
+      Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      digitalWrite(motor3, LOW);
+      digitalWrite(motor4, LOW);
+      digitalWrite(motor2, LOW);
+      digitalWrite(motor1, LOW);
+      digitalWrite(4, LOW);
+      break;
+    case WS_EVT_DATA:
+      handleWebSocketMessage(arg, data, len);
+      break;
+    case WS_EVT_PONG:
+    case WS_EVT_ERROR:
+      break;
   }
 }
 
@@ -207,6 +157,7 @@ void setup() {
   pinMode(motor4, OUTPUT);
   pinMode(4, OUTPUT);
 
+  //získaní stránky z spiffs
   SPIFFS.begin();
   File file = SPIFFS.open("/index.html", "r");
   while(file.available()){
@@ -229,8 +180,8 @@ void setup() {
   config.pin_pclk = 22;
   config.pin_vsync = 25;
   config.pin_href = 23;
-  config.pin_sscb_sda = 26;
-  config.pin_sscb_scl = 27;
+  config.pin_sccb_sda = 26;
+  config.pin_sccb_scl = 27;
   config.pin_pwdn = 32;
   config.pin_reset = -1;
   config.xclk_freq_hz = 20000000;
@@ -240,6 +191,7 @@ void setup() {
     config.frame_size = FRAMESIZE_VGA;
     config.jpeg_quality = 10;
     config.fb_count = 2;
+    config.fb_location = CAMERA_FB_IN_PSRAM;
   } else {
     config.frame_size = FRAMESIZE_SVGA;
     config.jpeg_quality = 12;
@@ -256,12 +208,39 @@ void setup() {
   //WiFi
   WiFi.softAP("Robot", "Robot123");
   delay(500);
-  
-  startServer();
+
+  //stream server
+  httpd_config_t configWeb = HTTPD_DEFAULT_CONFIG();
+  configWeb.server_port = 81; //192.168.4.1:81/stream
+  configWeb.ctrl_port = 81;
+
+  //odkaz pro stream
+  httpd_uri_t stream_uri = {
+    .uri       = "/stream",
+    .method    = HTTP_GET,
+    .handler   = stream_handler,
+    .user_ctx  = NULL
+  };
+  //nastartování stránky stream
+  if (httpd_start(&stream_httpd, &configWeb) == ESP_OK) {
+    httpd_register_uri_handler(stream_httpd, &stream_uri);
+  }
+
+  //web server
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/html", indexString);
+  });
+  server.begin();
+
+  //websocket server
+  ws.onEvent(onEvent);
+  server.addHandler(&ws);
 }
 
 void loop() {
-  
+  ws.cleanupClients();
 }
 
-//plán: ovládání robota, ovládání LED
+//credits:
+//streamování https://randomnerdtutorials.com/esp32-cam-video-streaming-web-server-camera-home-assistant/
+//websocket https://randomnerdtutorials.com/esp32-websocket-server-arduino/

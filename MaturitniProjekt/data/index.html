@@ -12,29 +12,20 @@
       height: 100%;
       width: 100%;
     }
-
-    h1 {
+    h1,h2 {
       color: #00FF00;
     }
-    h2{
-      color: #00FF00;
-    }
-
     img {
-      width: auto;
-      max-width: 100%;
-      height: auto;
-    }
-
-    .center {
-      position: absolute;
-      display: block;
-      z-index: 2;
       width: 100%;
-	height: 100%;
-	
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
-
+    .imgDiv {
+      height: 100%;
+      position: relative;
+    }
     .w {
       bottom: 100px;
       left: 100px;
@@ -55,135 +46,122 @@
       bottom: 50px;
       left: 290px;
     }
-
-    .tlacitko {
-      width: 80px;
-      height: 40px;
-    }
-
-    .divCenter {
-      text-align: center;
-    }
-
-    footer{
-      text-align: center;
-    }
     .Nadpis{
       position: absolute;
       z-index: 3;
       left: 50%;
+      transform: translate(-50%, 0);
     }
     .Podpis{
       position: absolute;
       z-index: 3;
-      left: 48%;
       bottom: 0%;
+      left: 50%;
+      transform: translate(-50%, 0);
     }
     .tlacitko {
-	background:linear-gradient(to bottom, #00fc43 5%, #474747 100%);
-	background-color:#00fc43;
-	border-radius:12px;
-	border:4px solid #52d45f;
-	display:inline-block;
-	cursor:pointer;
-	color:#ffffff;
-	font-family:Arial;
-	font-weight:bold;
-	text-decoration:none;
-	text-shadow:0px 1px 0px #21421c;
-  position: absolute;
+      background:linear-gradient(to bottom, #00fc43 5%, #474747 100%);
+      background-color:#00fc43;
+      border-radius:12px;
+      border:4px solid #52d45f;
+      display:inline-block;
+      cursor:pointer;
+      color:#ffffff;
+      font-family:Arial;
+      font-weight:bold;
+      text-decoration:none;
+      text-shadow: 0px 1px 0px #21421c;
+      position: absolute;
       width: 80px;
       height: 40px;
       z-index: 3;
-}
-.tlacitko:hover {
-	background:linear-gradient(to bottom, #474747 5%, #00fc43 100%);
-	background-color:#474747;
-}
+    }
+    .tlacitko:hover {
+      background:linear-gradient(to bottom, #474747 5%, #00fc43 100%);
+      background-color:#474747;
+    }
   </style>
 </head>
 
 <body>
   <h1 class="Nadpis">Robot</h1>
-  
-  <img src="" id="stream" class="center">
-  <div class="divCenter">
+  <div class="imgDiv">
+    <img src="" id="stream">
+  </div>
+  <div>
     <button type="button" class="tlacitko w" onmousedown="goFnc('rovne');" ontouchstart="goFnc('rovne');"
       onclick="goFnc('rovne');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">W</button>
-    <br>
     <button type="button" class="tlacitko a" onmousedown="goFnc('vlevo');" ontouchstart="goFnc('vlevo');"
       onclick="goFnc('vlevo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">A</button>
     <button type="button" class="tlacitko s" onmousedown="goFnc('dozadu');" ontouchstart="goFnc('dozadu');"
       onclick="goFnc('dozadu');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">S</button>
     <button type="button" class="tlacitko d" onmousedown="goFnc('vpravo');" ontouchstart="goFnc('vpravo');"
       onclick="goFnc('vpravo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">D</button>
-    <br>
     <button type="button" class="tlacitko f" onclick="svetlo()">Světlo</button>
   </div>
   <h2 class="Podpis">Patrik Mlčák IT4</h2>
-  <script>
-    let led = false;
-    window.onload = document.getElementById("stream").src = window.location.href.slice(0, -1) + ":81/stream";
-
-    function goFnc(x) {
-      websocket.send(x);
-    }
-
-    function svetlo() {
-      let xhr = new XMLHttpRequest();
-      if (led) {
-        websocket.send('ledOff');
-        led = false;
-      } else {
-        websocket.send('ledOn');
-        led = true;
-      }
-    }
-
-    let lastKey;
-    window.addEventListener('keydown', function (e) {
-      if (lastKey != e.key) {
-        if (e.key == "w") {
-          goFnc('rovne');
-        } else if (e.key == "d") {
-          goFnc('vlevo');
-        } else if (e.key == "s") {
-          goFnc('dozadu');
-        } else if (e.key == "a") {
-          goFnc('vpravo');
-        } else if (e.key == "f") {
-          svetlo();
-        }
-        lastKey = e.key;
-      }
-    });
-
-    window.addEventListener("keyup", function (e) {
-      if (e.key != "f") {
-        goFnc('stop');
-      }
-      lastKey = "";
-    });
-
-
-    var gateway = `ws://${window.location.hostname}/ws`;
-    var websocket;
-    window.addEventListener('load', initWebSocket);
-    function initWebSocket() {
-      console.log('Trying to open a WebSocket connection...');
-      websocket = new WebSocket(gateway);
-      websocket.onopen = onOpen;
-      websocket.onclose = onClose;
-    }
-    function onOpen(event) {
-      console.log('Connection opened');
-    }
-    function onClose(event) {
-      console.log('Connection closed');
-      setTimeout(initWebSocket, 2000);
-    }
-  </script>
 </body>
 
-</html>
+<script>
+  let led = false;
+  window.onload = document.getElementById("stream").src = window.location.href.slice(0, -1) + ":81/stream";
 
+  function goFnc(x) {
+    websocket.send(x);
+  }
+
+  function svetlo() {
+    if (led) {
+      websocket.send('ledOff');
+      led = false;
+    } else {
+      websocket.send('ledOn');
+      led = true;
+    }
+  }
+
+  let lastKey;
+  window.addEventListener('keydown', function (e) {
+    if (lastKey != e.key) {
+      if (e.key == "w") {
+        goFnc('rovne');
+      } else if (e.key == "d") {
+        goFnc('vlevo');
+      } else if (e.key == "s") {
+        goFnc('dozadu');
+      } else if (e.key == "a") {
+        goFnc('vpravo');
+      } else if (e.key == "f") {
+        svetlo();
+      }
+      lastKey = e.key;
+    }
+  });
+
+  window.addEventListener("keyup", function (e) {
+    if (e.key != "f") {
+      goFnc('stop');
+    }
+    lastKey = "";
+  });
+
+
+  var gateway = `ws://${window.location.hostname}/ws`;
+  var websocket;
+  window.addEventListener('load', initWebSocket);
+  function initWebSocket() {
+    console.log('Trying to open a WebSocket connection...');
+    websocket = new WebSocket(gateway);
+    websocket.onopen = onOpen;
+    websocket.onclose = onClose;
+  }
+  function onOpen(event) {
+    console.log('Connection opened');
+  }
+  function onClose(event) {
+    console.log('Connection closed');
+    setTimeout(initWebSocket, 2000);
+  }
+</script>
+
+</html>
