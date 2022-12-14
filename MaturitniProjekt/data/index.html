@@ -1,93 +1,189 @@
 <html>
-  <head>
-    <title>ESP32-CAM Robot</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-    body{
+
+<head>
+  <title>ESP32-CAM Robot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
       font-family: Verdana, Geneva, Tahoma, sans-serif;
       background-color: #000000;
+      padding: 0px;
+      margin: 0px;
+      height: 100%;
+      width: 100%;
     }
-    h1{
-      text-align: center;
+
+    h1 {
       color: #00FF00;
     }
-      img {
-        width: auto;
-        max-width: 100%;
-        height: auto; 
-      }
+    h2{
+      color: #00FF00;
+    }
+
+    img {
+      width: auto;
+      max-width: 100%;
+      height: auto;
+    }
 
     .center {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 100%;
+      position: absolute;
+      display: block;
+      z-index: 2;
+      width: 100%;
+	height: 100%;
+	
     }
-    .tlacitko{
-width: 80px;
-height: 40px;
+
+    .w {
+      bottom: 100px;
+      left: 100px;
+    }
+    .a {
+      bottom: 50px;
+      left: 10px;
+    }
+    .s {
+      bottom: 50px;
+      left: 100px;
+    }
+    .d {
+      bottom: 50px;
+      left: 190px;
+    }
+    .f {
+      bottom: 50px;
+      left: 290px;
+    }
+
+    .tlacitko {
+      width: 80px;
+      height: 40px;
+    }
+
+    .divCenter {
+      text-align: center;
+    }
+
+    footer{
+      text-align: center;
+    }
+    .Nadpis{
+      position: absolute;
+      z-index: 3;
+      left: 50%;
+    }
+    .Podpis{
+      position: absolute;
+      z-index: 3;
+      left: 48%;
+      bottom: 0%;
+    }
+    .tlacitko {
+	background:linear-gradient(to bottom, #00fc43 5%, #474747 100%);
+	background-color:#00fc43;
+	border-radius:12px;
+	border:4px solid #52d45f;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-weight:bold;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #21421c;
+  position: absolute;
+      width: 80px;
+      height: 40px;
+      z-index: 3;
 }
-.divCenter{
-    text-align: center;
+.tlacitko:hover {
+	background:linear-gradient(to bottom, #474747 5%, #00fc43 100%);
+	background-color:#474747;
 }
-    </style>
-  </head>
-  <body>
-    <h1>Robot</h1>
-    <img src="" id="stream" class="center">
-    <div class="divCenter">
-      <button type="button" class="tlacitko w" onmousedown="goFnc('rovne');" ontouchstart="goFnc('rovne');" onclick="goFnc('rovne');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">W</button>
-      <br>
-      <button type="button" class="tlacitko" onmousedown="goFnc('vlevo');" ontouchstart="goFnc('vlevo');" onclick="goFnc('vlevo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">A</button>
-      <button type="button" class="tlacitko" onmousedown="goFnc('dozadu');" ontouchstart="goFnc('dozadu');" onclick="goFnc('dozadu');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">S</button>
-      <button type="button" class="tlacitko" onmousedown="goFnc('vpravo');" ontouchstart="goFnc('vpravo');" onclick="goFnc('vpravo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">D</button>
-      <br>
-      <button type="button" onclick="svetlo()">Světlo</button>
+  </style>
+</head>
+
+<body>
+  <h1 class="Nadpis">Robot</h1>
+  
+  <img src="" id="stream" class="center">
+  <div class="divCenter">
+    <button type="button" class="tlacitko w" onmousedown="goFnc('rovne');" ontouchstart="goFnc('rovne');"
+      onclick="goFnc('rovne');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">W</button>
+    <br>
+    <button type="button" class="tlacitko a" onmousedown="goFnc('vlevo');" ontouchstart="goFnc('vlevo');"
+      onclick="goFnc('vlevo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">A</button>
+    <button type="button" class="tlacitko s" onmousedown="goFnc('dozadu');" ontouchstart="goFnc('dozadu');"
+      onclick="goFnc('dozadu');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">S</button>
+    <button type="button" class="tlacitko d" onmousedown="goFnc('vpravo');" ontouchstart="goFnc('vpravo');"
+      onclick="goFnc('vpravo');" onmouseup="goFnc('stop');" ontouchend="goFnc('stop');">D</button>
+    <br>
+    <button type="button" class="tlacitko f" onclick="svetlo()">Světlo</button>
   </div>
-   <script>
+  <h2 class="Podpis">Patrik Mlčák IT4</h2>
+  <script>
     let led = false;
-   window.onload = document.getElementById("stream").src = window.location.href.slice(0, -1) + ":81/stream";
-   function goFnc(x){
-    let xhr = new XMLHttpRequest();
-    xhr.open ("GET", "/go?direction=" + x, true);
-    xhr.send();
-   }
-   function svetlo(){
-    let xhr = new XMLHttpRequest();
-    if(led){
-    xhr.open ("GET", "/go?direction=ledOff", true);
-    led = false;
-    } else{
-      xhr.open ("GET", "/go?direction=ledOn", true);
-      led = true;
+    window.onload = document.getElementById("stream").src = window.location.href.slice(0, -1) + ":81/stream";
+
+    function goFnc(x) {
+      websocket.send(x);
     }
-    xhr.send();
-   }
+
+    function svetlo() {
+      let xhr = new XMLHttpRequest();
+      if (led) {
+        websocket.send('ledOff');
+        led = false;
+      } else {
+        websocket.send('ledOn');
+        led = true;
+      }
+    }
 
     let lastKey;
     window.addEventListener('keydown', function (e) {
-	    if(lastKey != e.key) {
-        if(e.key == "w") {
+      if (lastKey != e.key) {
+        if (e.key == "w") {
           goFnc('rovne');
-        }else if (e.key == "d") {
-    	    goFnc('vlevo');
-        }else if (e.key == "s") {
-    	    goFnc('dozadu');
-        }else if (e.key == "a") {
-    	    goFnc('vpravo');
-        }else if (e.key == "f") {
-    	    svetlo();
+        } else if (e.key == "d") {
+          goFnc('vlevo');
+        } else if (e.key == "s") {
+          goFnc('dozadu');
+        } else if (e.key == "a") {
+          goFnc('vpravo');
+        } else if (e.key == "f") {
+          svetlo();
         }
-  	    lastKey = e.key;
-      } 
+        lastKey = e.key;
+      }
     });
 
-window.addEventListener("keyup", function(e) {
-  if(e.key != "f"){
-    goFnc('stop');
-  }
-    lastKey = "";
-  });
+    window.addEventListener("keyup", function (e) {
+      if (e.key != "f") {
+        goFnc('stop');
+      }
+      lastKey = "";
+    });
+
+
+    var gateway = `ws://${window.location.hostname}/ws`;
+    var websocket;
+    window.addEventListener('load', initWebSocket);
+    function initWebSocket() {
+      console.log('Trying to open a WebSocket connection...');
+      websocket = new WebSocket(gateway);
+      websocket.onopen = onOpen;
+      websocket.onclose = onClose;
+    }
+    function onOpen(event) {
+      console.log('Connection opened');
+    }
+    function onClose(event) {
+      console.log('Connection closed');
+      setTimeout(initWebSocket, 2000);
+    }
   </script>
-  </body>
+</body>
+
 </html>
+
