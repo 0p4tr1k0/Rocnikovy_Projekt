@@ -1,19 +1,23 @@
 # Ročníkový projekt - Autíčko na dálkové ovládání
 - Autíčko by mělo na sobě kameru, která by přenášela obraz do prohlížeče (autíčko by se ovládalo pomocí klávesnice z počítače).
 
+
 # Autor projektu
 
 - Patrik Mlčák
 
+
 # Konzultanti
 
-- Martin Čech
-- Jakub Heisig
-- Viktor Chudoba
-- Pavel Sixta
+Učitelé:
+- Mgr. Petr Grussmann
 
-# SW
-- Arduino IDE?  
+Spolužáci:
+- Jakub Heisig
+- Martin Kavala
+
+
+# SW  
 - Platformio
 
 
@@ -51,12 +55,12 @@
 - Dodělání potřebných funkcí
 - Dokumentace
 
+
 # Zdroje informací
 - https://randomnerdtutorials.com/program-upload-code-esp32-cam/
 - https://www.youtube.com/watch?v=-GDlk6qgQ_E
 - websocket https://randomnerdtutorials.com/esp32-websocket-server-arduino/
 - streamování https://randomnerdtutorials.com/esp32-cam-video-streaming-web-server-camera-home-assistant/
-
 
 
 ![maxresdefault](https://user-images.githubusercontent.com/66717846/195072284-42560d5e-8189-4bd0-be5f-18f21b6e6835.jpg)
