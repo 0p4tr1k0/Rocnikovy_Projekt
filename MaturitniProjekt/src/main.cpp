@@ -126,14 +126,14 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len)
       digitalWrite(motor2, LOW);
       digitalWrite(motor1, HIGH);
     }
-    else if (!strcmp((char *)data, "vlevo"))
+    else if (!strcmp((char *)data, "vpravo"))
     {
       digitalWrite(motor3, LOW);
       digitalWrite(motor4, HIGH);
       digitalWrite(motor2, HIGH);
       digitalWrite(motor1, LOW);
     }
-    else if (!strcmp((char *)data, "vpravo"))
+    else if (!strcmp((char *)data, "vlevo"))
     {
       digitalWrite(motor3, HIGH);
       digitalWrite(motor4, LOW);
