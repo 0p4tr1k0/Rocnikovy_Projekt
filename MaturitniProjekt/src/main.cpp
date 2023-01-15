@@ -284,6 +284,3 @@ void loop()
   ws.cleanupClients();
 }
 
-// credits:
-// streamování https://randomnerdtutorials.com/esp32-cam-video-streaming-web-server-camera-home-assistant/
-// websocket https://randomnerdtutorials.com/esp32-websocket-server-arduino/
